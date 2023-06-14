@@ -1,5 +1,5 @@
 import os
-from clients import ClientsHandler
+from sql_home_work_4.clients import ClientsHandler
 
 password = os.getenv('PASSWORD')
 
