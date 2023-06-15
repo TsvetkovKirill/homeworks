@@ -3,11 +3,7 @@ from tabulate import tabulate
 
 
 class ClientsHandler:
-    """
-    Simplifies usage of psycopg2-binary but bind to specific db structure
-    which includes 'clients' and 'phone' tables
-    before using you may want to create fresh db.
-    """
+
 
     def __init__(self, database: str, password: str,
                  user: str = 'postgres',
@@ -44,21 +40,12 @@ class ClientsHandler:
         return tabulate(raw_table, headers, 'presto', numalign='left')
 
     def __select_all(self):
-        self.__cursor.execute("""
-                    select c.client_id, first_name, 
-                            last_name, email, phone_number, phone_id
-                    from phone p
-                    full join client c on p.client_id = c.client_id
-                    order by c.client_id;
-                    """)
+        self.__cursor.execute()
 
         return self.__cursor.fetchall()
 
     def drop_all_tables(self):
-        self.__cursor.execute("""
-                    drop table phone;
-                    drop table client;
-                    """)
+        self.__cursor.execute()
 
         self.__conn.commit()
 
