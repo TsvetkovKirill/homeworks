@@ -1,15 +1,16 @@
 import vk_api
 import requests
 # from VKnedozamesTInder.database import insert_data_users, insert_data_seen_users, select
-from config import bot_key
+from config import access_token
+from config import access_token
 import datetime
-from vk_api.longpoll import VkLongPoll, VkEventType
+# from vk_api.longpoll import VkLongPoll, VkEventType
 from random import randrange
 import json
 # from database import *
 
-session = vk_api.VkApi(token=bot_key)
-long_pool = VkLongPoll(session)
+session = vk_api.VkApi(token=access_token)
+# long_pool = VkLongPoll(session)
 
 
 def write_messages(user_id, message):
@@ -19,12 +20,12 @@ def write_messages(user_id, message):
                                             'random_id': randrange(2147483647)
                                             })
 
-
+print(write_messages(674830336, 'ti pidor'))
 # print(write_messages(674830336, 'adsfkljkl'))
 def get_users_name(user_id):
     '''Получить имя пользователя'''
     url = f'https://api.vk.com/method/users.get'
-    parameters = {'access_token': bot_key,
+    parameters = {'access_token': access_token,
                   'user_ids': user_id,
                   'v': 5.131}
     result = requests.get(url, params=parameters)
@@ -37,7 +38,6 @@ def get_users_name(user_id):
     except KeyError:
         write_messages(user_id, 'Receiving token error, please re-enter the token.')
 
-
 # print(get_users_name(674830336))
 
 
@@ -46,35 +46,44 @@ def get_photos(owner_id, offset=0, count=3):
         'owner_id': owner_id,
         'offset': offset,
         'count': count,
-        'access_token': bot_key,
+        'access_token': access_token,
         'extended': 1,
         'v': 5.131
     })
     return json.loads(api_.text)
 
 
-# print(get_photos(51697655))
+print(get_photos(674830336))
 #
-# notify	=   (1 << 0)	#Пользователь разрешил отправлять ему уведомления (для flash/iframe-приложений).
-# friends	=   (1 << 1)#	Доступ к друзьям.
-# photos	=   (1 << 2)	#Доступ к фотографиям.
-# audio	=  (1 << 3)#	Доступ к аудиозаписям.
-# video	=   (1 << 4)	#Доступ к видеозаписям.
-# # stories	=  (1 << 6)	#Доступ к историям.
-# # pages	=   (1 << 7)	#Доступ к wiki-страницам.
-# # menu	=   (1 << 8)	#Добавление ссылки на приложение в меню слева.
-# status	=   (1 << 10)#Доступ к статусу пользователя.
-# # notes	=   (1 << 11)	#Доступ к заметкам пользователя.
+notify	=   (1 << 0)	#Пользователь разрешил отправлять ему уведомления (для flash/iframe-приложений).
+friends	=   (1 << 1)#	Доступ к друзьям.
+photos	=   (1 << 2)	#Доступ к фотографиям.
+audio	=  (1 << 3)#	Доступ к аудиозаписям.
+video	=   (1 << 4)	#Доступ к видеозаписям.
+# stories	=  (1 << 6)	#Доступ к историям.
+# pages	=   (1 << 7)	#Доступ к wiki-страницам.
+# menu	=   (1 << 8)	#Добавление ссылки на приложение в меню слева.
+status	=   (1 << 10)#Доступ к статусу пользователя.
+# notes	=   (1 << 11)	#Доступ к заметкам пользователя.
 # messages	=  (1 << 12)	#Доступ к расширенным методам работы с сообщениями (только для Standalone-приложений, прошедших модерацию).
-# offline	=  (1 << 16)#	Доступ к API в любое время (при использовании этой опции параметр expires_in, возвращаемый вместе с access_token, содержит 0 — токен бессрочный). Не применяется в Open API.
-# # docs	=   (1 << 17)	#Доступ к документам.
+offline	=  (1 << 16)#	Доступ к API в любое время (при использовании этой опции параметр expires_in, возвращаемый вместе с access_token, содержит 0 — токен бессрочный). Не применяется в Open API.
+# docs	=   (1 << 17)	#Доступ к документам.
 #
+
 # phone_number	=  (1 << 287)
-# print(notify| friends| photos| audio | video| status| messages| offline| phone_number)
+print(notify| photos|status|offline)
+# print(65536 & (1 << 2))
+
+
+
+
+
+
+
 # def get_photos_id(user_id):
 #     """ПОЛУЧЕНИЕ ID ФОТОГРАФИЙ С РАНЖИРОВАНИЕМ В ОБРАТНОМ ПОРЯДКЕ"""
 #     url = 'https://api.vk.com/method/photos.getAll'
-#     params = {'access_token': bot_key,
+#     params = {'access_token': access_token,
 #               'owner_id': user_id,
 #               'extended': 1,
 #               'count': 25,
@@ -101,7 +110,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def get_gender(user_id):
 #     '''Получить пол пользователя и сменить на противоположный'''
 #     url = f'https://api.vk.com/method/users.get'
-#     parameters = {'access_token': bot_key,
+#     parameters = {'access_token': access_token,
 #                   'user_ids': user_id,
 #                   'fields': 'sex',
 #                   'v': 5.131
@@ -126,7 +135,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def min_permission_age(user_id):
 #     '''ПОЛУЧИТЬ МИНИМАЛЬНО-ВОЗМОЖНЫЙ ВОЗРАСТ, ДАБЫ НЕ ПРИСЕСТЬ НА ВОСЬМЕРКУ'''
 #     url = f'https://api.vk.com/method/users.get'
-#     params = {'access_token': bot_key,
+#     params = {'access_token': access_token,
 #               'user_ids': user_id,
 #               'fields': 'bdate',
 #               'v': 5.131
@@ -155,7 +164,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def cities(user_id, city_name):
 #     """ПОЛУЧЕНИЕ ID ГОРОДА ПОЛЬЗОВАТЕЛЯ ПО НАЗВАНИЮ"""
 #     url = f'https://api.vk.com/method/database.getCities'
-#     params = {'access_token': bot_key,
+#     params = {'access_token': access_token,
 #               'country_id': 1,
 #               'q': f'{city_name}',
 #               'need_all': 0,
@@ -178,7 +187,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def find_city(user_id):
 #     """ПОЛУЧЕНИЕ ИНФОРМАЦИИ О ГОРОДЕ ПОЛЬЗОВАТЕЛЯ"""
 #     url = f'https://api.vk.com/method/users.get'
-#     params = {'access_token': bot_key,
+#     params = {'access_token': access_token,
 #               'fields': 'city',
 #               'user_ids': user_id,
 #               'v': '5.131'}
@@ -208,7 +217,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def find_user(user_id):
 #     """ПОИСК ЧЕЛОВЕКА ПО ПОЛУЧЕННЫМ ДАННЫМ"""
 #     url = f'https://api.vk.com/method/users.search'
-#     params = {'access_token': bot_key,
+#     params = {'access_token': access_token,
 #               'v': '5.131',
 #               'sex': get_gender(user_id),
 #               'age_from': min_permission_age(),
@@ -239,7 +248,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def get_photos_id(user_id):
 #     """ПОЛУЧЕНИЕ ID ФОТОГРАФИЙ С РАНЖИРОВАНИЕМ В ОБРАТНОМ ПОРЯДКЕ"""
 #     url = 'https://api.vk.com/method/photos.getAll'
-#     params = {'access_token': bot_key,
+#     params = {'access_token': access_token,
 #               'type': 'album',
 #               'owner_id': user_id,
 #               'extended': 1,
@@ -296,7 +305,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def send_photo_1(user_id, message, offset):
 #     """ОТПРАВКА ПЕРВОЙ ФОТОГРАФИИ"""
 #     session.method('messages.send', {'user_id': user_id,
-#                                      'access_token': bot_key,
+#                                      'access_token': access_token,
 #                                      'message': message,
 #                                      'attachment': f'photo{person_id(offset)}_{get_photo_1(person_id(offset))}',
 #                                      'random_id': 0})
@@ -305,7 +314,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def send_photo_2(user_id, message, offset):
 #     """ОТПРАВКА ВТОРОЙ ФОТОГРАФИИ"""
 #     session.method('messages.send', {'user_id': user_id,
-#                                      'access_token': bot_key,
+#                                      'access_token': access_token,
 #                                      'message': message,
 #                                      'attachment': f'photo{person_id(offset)}_{get_photo_2(person_id(offset))}',
 #                                      'random_id': 0})
@@ -314,7 +323,7 @@ def get_photos(owner_id, offset=0, count=3):
 # def send_photo_3(self, user_id, message, offset):
 #     """ОТПРАВКА ТРЕТЬЕЙ ФОТОГРАФИИ"""
 #     session.method('messages.send', {'user_id': user_id,
-#                                      'access_token': bot_key,
+#                                      'access_token': access_token,
 #                                      'message': message,
 #                                      'attachment': f'photo{person_id(offset)}_{get_photo_3(person_id(offset))}',
 #                                      'random_id': 0})
