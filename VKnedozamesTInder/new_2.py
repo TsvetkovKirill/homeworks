@@ -1,16 +1,13 @@
 import vk_api
 import requests
-# from VKnedozamesTInder.database import insert_data_users, insert_data_seen_users, select
-from config import access_token
 from config import access_token
 import datetime
-# from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.longpoll import VkLongPoll, VkEventType
 from random import randrange
 import json
-# from database import *
 
 session = vk_api.VkApi(token=access_token)
-# long_pool = VkLongPoll(session)
+# long_pool = VkLongPoll(session) #возникает ошибка access denied: no access to call this method
 
 
 def write_messages(user_id, message):
@@ -19,9 +16,7 @@ def write_messages(user_id, message):
                                             'message': message,
                                             'random_id': randrange(2147483647)
                                             })
-
-print(write_messages(674830336, 'ti pidor'))
-# print(write_messages(674830336, 'adsfkljkl'))
+# print(write_messages(674830336, 'почему ты не отправляешься?!'))
 def get_users_name(user_id):
     '''Получить имя пользователя'''
     url = f'https://api.vk.com/method/users.get'
@@ -53,136 +48,112 @@ def get_photos(owner_id, offset=0, count=3):
     return json.loads(api_.text)
 
 
-print(get_photos(674830336))
+# print(get_photos(674830336))
+
+def get_photos_id(user_id):
+    """ПОЛУЧЕНИЕ ID ФОТОГРАФИЙ С РАНЖИРОВАНИЕМ В ОБРАТНОМ ПОРЯДКЕ"""
+    url = 'https://api.vk.com/method/photos.getAll'
+    params = {'access_token': access_token,
+              'owner_id': user_id,
+              'extended': 1,
+              'count': 25,
+              'v': '5.131'}
+    resp = requests.get(url, params=params)
+    dict_photos = dict()
+    resp_json = resp.json()
+    try:
+        dict_1 = resp_json['response']
+        list_1 = dict_1['items']
+        for i in list_1:
+            photo_id = str(i.get('id'))
+            i_likes = i.get('likes')
+            if i_likes.get('count'):
+                likes = i_likes.get('count')
+                dict_photos[likes] = photo_id
+        list_of_ids = sorted(dict_photos.items(), reverse=True)
+        return list_of_ids
+    except KeyError:
+        write_messages(user_id, 'Ошибка получения токена')
 #
-notify	=   (1 << 0)	#Пользователь разрешил отправлять ему уведомления (для flash/iframe-приложений).
-friends	=   (1 << 1)#	Доступ к друзьям.
-photos	=   (1 << 2)	#Доступ к фотографиям.
-audio	=  (1 << 3)#	Доступ к аудиозаписям.
-video	=   (1 << 4)	#Доступ к видеозаписям.
-# stories	=  (1 << 6)	#Доступ к историям.
-# pages	=   (1 << 7)	#Доступ к wiki-страницам.
-# menu	=   (1 << 8)	#Добавление ссылки на приложение в меню слева.
-status	=   (1 << 10)#Доступ к статусу пользователя.
-# notes	=   (1 << 11)	#Доступ к заметкам пользователя.
-# messages	=  (1 << 12)	#Доступ к расширенным методам работы с сообщениями (только для Standalone-приложений, прошедших модерацию).
-offline	=  (1 << 16)#	Доступ к API в любое время (при использовании этой опции параметр expires_in, возвращаемый вместе с access_token, содержит 0 — токен бессрочный). Не применяется в Open API.
-# docs	=   (1 << 17)	#Доступ к документам.
+# print(get_photos_id(722061506))
+
+def get_gender(user_id):
+    '''Получить пол пользователя и сменить на противоположный'''
+    url = f'https://api.vk.com/method/users.get'
+    parameters = {'access_token': access_token,
+                  'user_ids': user_id,
+                  'fields': 'sex',
+                  'v': 5.131
+                  }
+    result = requests.get(url, params=parameters)
+    response = result.json()
+    try:
+        info_from_dict = response['response']
+        for i in info_from_dict:
+            sex = i.get('sex')
+            if sex == 1:
+                return 'woman'
+            elif sex == 2:
+                return 'man'
+            else:
+                return 'This is not Thailand!'
+
+    except KeyError:
+        write_messages(user_id, 'Receiving token error, please re-enter the token.')
 #
+# print(get_gender(722061506))
 
-# phone_number	=  (1 << 287)
-print(notify| photos|status|offline)
-# print(65536 & (1 << 2))
+def min_permission_age(user_id):
+    '''ПОЛУЧИТЬ МИНИМАЛЬНО-ВОЗМОЖНЫЙ ВОЗРАСТ, ДАБЫ НЕ ПРИСЕСТЬ НА ВОСЬМЕРКУ'''
+    url = f'https://api.vk.com/method/users.get'
+    params = {'access_token': access_token,
+              'user_ids': user_id,
+              'fields': 'bdate',
+              'v': 5.131
+              }
+    result = requests.get(url, params=params)
+    responce = result.json()
+    try:
+        info_from_response = responce['response']
+        for elem in info_from_response:
+            date = elem['bdate']
+            bdate_list = elem['bdate'].split('.')
+            if len(bdate_list) == 3:
+                bdate = int(bdate_list[2])
+                current_year = datetime.date.today().year
+                return current_year - bdate
+            elif date not in info_from_response:
+                write_messages(user_id, 'Entering the minimum possible age, but no smaller than 18: ')
+                for event in long_pool.listen():#не работает long_pool, разобраться
+                    if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                        age = event.text
+                        return age
+    except KeyError:
+        write_messages(user_id, 'Receiving token error, please re-enter the token.')
 
-
-
-
-
-
-
-# def get_photos_id(user_id):
-#     """ПОЛУЧЕНИЕ ID ФОТОГРАФИЙ С РАНЖИРОВАНИЕМ В ОБРАТНОМ ПОРЯДКЕ"""
-#     url = 'https://api.vk.com/method/photos.getAll'
-#     params = {'access_token': access_token,
-#               'owner_id': user_id,
-#               'extended': 1,
-#               'count': 25,
-#               'v': '5.131'}
-#     resp = requests.get(url, params=params)
-#     dict_photos = dict()
-#     resp_json = resp.json()
-#     try:
-#         dict_1 = resp_json['response']
-#         list_1 = dict_1['items']
-#         for i in list_1:
-#             photo_id = str(i.get('id'))
-#             i_likes = i.get('likes')
-#             if i_likes.get('count'):
-#                 likes = i_likes.get('count')
-#                 dict_photos[likes] = photo_id
-#         list_of_ids = sorted(dict_photos.items(), reverse=True)
-#         return list_of_ids
-#     except KeyError:
-#         write_messages(user_id, 'Ошибка получения токена')
 #
-
-
-# def get_gender(user_id):
-#     '''Получить пол пользователя и сменить на противоположный'''
-#     url = f'https://api.vk.com/method/users.get'
-#     parameters = {'access_token': access_token,
-#                   'user_ids': user_id,
-#                   'fields': 'sex',
-#                   'v': 5.131
-#                   }
-#     result = requests.get(url, params=parameters)
-#     response = result.json()
-#     try:
-#         info_from_dict = response['response']
-#         for i in info_from_dict:
-#             sex = i.get('sex')
-#             if sex == 1:
-#                 return 'woman'
-#             elif sex == 2:
-#                 return 'man'
-#             else:
-#                 return 'This is not Thailand!'
-#
-#     except KeyError:
-#         write_messages(user_id, 'Receiving token error, please re-enter the token.')
-#
-#
-# def min_permission_age(user_id):
-#     '''ПОЛУЧИТЬ МИНИМАЛЬНО-ВОЗМОЖНЫЙ ВОЗРАСТ, ДАБЫ НЕ ПРИСЕСТЬ НА ВОСЬМЕРКУ'''
-#     url = f'https://api.vk.com/method/users.get'
-#     params = {'access_token': access_token,
-#               'user_ids': user_id,
-#               'fields': 'bdate',
-#               'v': 5.131
-#               }
-#     result = requests.get(url, params=params)
-#     responce = result.json()
-#     try:
-#         info_from_response = responce['response']
-#         for elem in info_from_response:
-#             date = elem['bdate']
-#             bdate_list = elem['bdate'].split('.')
-#             if len(bdate_list) == 3:
-#                 bdate = int(bdate_list[2])
-#                 current_year = datetime.date.today().year
-#                 return current_year - bdate
-#             elif date not in info_from_response:
-#                 write_messages(user_id, 'Entering the minimum possible age, but no smaller than 18: ')
-#                 for event in long_pool.listen():
-#                     if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-#                         age = event.text
-#                         return age
-#     except KeyError:
-#         write_messages(user_id, 'Receiving token error, please re-enter the token.')
-#
-#
-# def cities(user_id, city_name):
-#     """ПОЛУЧЕНИЕ ID ГОРОДА ПОЛЬЗОВАТЕЛЯ ПО НАЗВАНИЮ"""
-#     url = f'https://api.vk.com/method/database.getCities'
-#     params = {'access_token': access_token,
-#               'country_id': 1,
-#               'q': f'{city_name}',
-#               'need_all': 0,
-#               'count': 1000,
-#               'v': '5.131'}
-#     repl = requests.get(url, params=params)
-#     response = repl.json()
-#     try:
-#         information_list = response['response']
-#         list_cities = information_list['items']
-#         for i in list_cities:
-#             found_city_name = i.get('title')
-#             if found_city_name == city_name:
-#                 found_city_id = i.get('id')
-#                 return int(found_city_id)
-#     except KeyError:
-#         write_messages(user_id, 'Ошибка получения токена')
-#
+def cities(user_id, city_name):
+    """ПОЛУЧЕНИЕ ID ГОРОДА ПОЛЬЗОВАТЕЛЯ ПО НАЗВАНИЮ"""
+    url = f'https://api.vk.com/method/database.getCities'
+    params = {'access_token': access_token,
+              'country_id': 1,
+              'q': f'{city_name}',
+              'need_all': 0,
+              'count': 1000,
+              'v': '5.131'}
+    repl = requests.get(url, params=params)
+    response = repl.json()
+    try:
+        information_list = response['response']
+        list_cities = information_list['items']
+        for i in list_cities:
+            found_city_name = i.get('title')
+            if found_city_name == city_name:
+                found_city_id = i.get('id')
+                return int(found_city_id)
+    except KeyError:
+        write_messages(user_id, 'Ошибка получения токена')
+# print(cities(722061506, 'Вологда'))
 #
 # def find_city(user_id):
 #     """ПОЛУЧЕНИЕ ИНФОРМАЦИИ О ГОРОДЕ ПОЛЬЗОВАТЕЛЯ"""
@@ -245,33 +216,7 @@ print(notify| photos|status|offline)
 #         write_messages(user_id, 'Ошибка получения токена')
 #
 #
-# def get_photos_id(user_id):
-#     """ПОЛУЧЕНИЕ ID ФОТОГРАФИЙ С РАНЖИРОВАНИЕМ В ОБРАТНОМ ПОРЯДКЕ"""
-#     url = 'https://api.vk.com/method/photos.getAll'
-#     params = {'access_token': access_token,
-#               'type': 'album',
-#               'owner_id': user_id,
-#               'extended': 1,
-#               'count': 25,
-#               'v': '5.131'}
-#     resp = requests.get(url, params=params)
-#     dict_photos = dict()
-#     resp_json = resp.json()
-#     try:
-#         dict_1 = resp_json['response']
-#         list_1 = dict_1['items']
-#         for i in list_1:
-#             photo_id = str(i.get('id'))
-#             i_likes = i.get('likes')
-#             if i_likes.get('count'):
-#                 likes = i_likes.get('count')
-#                 dict_photos[likes] = photo_id
-#         list_of_ids = sorted(dict_photos.items(), reverse=True)
-#         return list_of_ids
-#     except KeyError:
-#         write_messages(user_id, 'Ошибка получения токена')
-#
-#
+
 # def get_photo_1(user_id):
 #     """ПОЛУЧЕНИЕ ID ФОТОГРАФИИ № 1"""
 #     list = get_photos_id(user_id)
